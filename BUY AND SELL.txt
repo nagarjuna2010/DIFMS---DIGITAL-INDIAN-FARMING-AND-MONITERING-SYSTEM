@@ -1,0 +1,139 @@
+CODE.GS : 
+
+
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('Product Marketplace');
+}
+
+// Fetch products from Google Sheet
+function getProducts() {
+  var ss = SpreadsheetApp.openById("1IFEFR2J-5-ZRExZ1JWCkftIkX_zabe1P7daadcZ-WLY");
+  var sheet = ss.getSheetByName("Products");
+  var data = sheet.getDataRange().getValues();
+  
+  var products = [];
+  for (var i = 1; i < data.length; i++) { // skip header
+    products.push({
+      name: data[i][0],       // Column A - Product Name
+      description: data[i][1],// Column B - Description
+      price: data[i][2],      // Column C - Price
+      seller: data[i][3],     // Column D - Seller Name
+      contact: data[i][4],    // Column E - Contact
+      email: data[i][5],      // Column F - Email
+      location: data[i][6],   // Column G - Location
+      image: data[i][7]       // Column H - Image URL
+    });
+  }
+  return products;
+}
+
+
+
+
+
+HTML : 
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Product Marketplace</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .add-btn {
+      background: #ff9800;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .product-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      padding: 15px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .product-card:hover {
+      transform: scale(1.03);
+    }
+    .product-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .price {
+      font-weight: bold;
+      color: green;
+      margin-top: 8px;
+    }
+    .contact {
+      font-size: 13px;
+      color: #555;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>🛒 Product Marketplace</h2>
+    <a class="add-btn" href="https://script.google.com/macros/s/AKfycbwC8Jhhq16AceI-5HkseS7M-TpvX1f61fL52RGzw_b_DtqnfJukmEb7Ry0oLOOl6Nvj/exec" target="_blank">
+      ➕ Add Your Product
+    </a>
+  </header>
+
+  <div class="product-grid" id="productList"></div>
+
+  <script>
+    function renderProducts(products) {
+      const container = document.getElementById("productList");
+      container.innerHTML = "";
+      products.forEach(p => {
+        let card = `
+          <div class="product-card">
+            <img src="${p.image || 'https://via.placeholder.com/250'}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p>${p.description}</p>
+            <p class="price">₹ ${p.price}</p>
+            <p class="contact">Seller: ${p.seller}</p>
+            <p class="contact">📍 ${p.location}</p>
+            <p class="contact">📞 ${p.contact}</p>
+            <p class="contact">✉️ ${p.email}</p>
+          </div>
+        `;
+        container.innerHTML += card;
+      });
+    }
+
+    google.script.run.withSuccessHandler(renderProducts).getProducts();
+  </script>
+</body>
+</html>

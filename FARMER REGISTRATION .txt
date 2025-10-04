@@ -1,0 +1,161 @@
+CODE.GS :
+
+
+
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('Digital India Farming and Monitoring System');
+}
+
+function saveData(formData) {
+  var sheet = SpreadsheetApp.openById("1s28ka9-ve2x5C3ew02HeEfN71C2i17DzrfF9aBPQnoc").getSheetByName("Registration");
+
+  if (!sheet) {
+    sheet = SpreadsheetApp.openById("1s28ka9-ve2x5C3ew02HeEfN71C2i17DzrfF9aBPQnoc").insertSheet("Registration");
+    sheet.appendRow(["Farmer Name", "Aadhar Number", "Land Survey Number", "Village", "District", "State", "Bank Account", "Bank Branch", "Email", "Phone", "FLIN"]);
+  }
+
+  var token = "FLIN" + Math.floor(100000 + Math.random() * 900000); // Generates a 6-digit number
+  formData.tokenNumber = token;
+
+  sheet.appendRow([
+    formData.farmerName,
+    formData.aadharNumber,
+    formData.landSurveyNumber,
+    formData.villageName,
+    formData.district,
+    formData.state,
+    formData.bankAccount,
+    formData.bankBranch,
+    formData.email,
+    formData.phone,
+    token
+  ]);
+
+  sendEmailConfirmation(formData.email, token);
+
+  return "Registration Successful! FLIN: " + token;
+}
+
+function sendEmailConfirmation(email, token) {
+  var subject = "Registration Confirmation - Digital India Farming";
+  var body = "Dear Farmer,\n\nYour registration was successful! Your FLIN is: " + token + "\n\nThank you for registering.\n\nBest Regards,\nDigital India Farming and Monitoring System";
+  MailApp.sendEmail(email, subject, body);
+}
+
+
+
+
+HTML:
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DIGITAL INDIA FARMING AND MONITORING SYSTEM</title>
+    <style>
+        body {
+            background-image: url('https://media.istockphoto.com/id/1280293781/vector/agricultural-workers-planting-paddy-seedlings-in-the-field-with-a-tractor-in-the-background.jpg?s=612x612&w=0&k=20&c=qpcHwcAj88_Zb6-C_DAkrpQAZ-x0IetzlHWtq8-bBeQ=');
+            background-size: cover;
+            text-align: center;
+            margin: 0;
+            padding-top: 100px;
+        }
+        h1 {
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            color: yellow;
+            background-color: blue;
+            padding: 20px;
+            font-size: 36px;
+            margin: 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 1000;
+            height: 80px;
+            line-height: 80px;
+        }
+        .moving-text {
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            color: red;
+            display: inline-block;
+            padding: 10px;
+            font-size: 24px;
+            position: absolute;
+            top: 120px;
+            width: auto;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            animation: moveRightLeft 10s linear infinite;
+        }
+        .moving-text a {
+            color: red;
+            text-decoration: none;
+        }
+        @keyframes moveRightLeft {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        form {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            width: 50%;
+            margin: auto;
+            margin-top: 150px;
+        }
+        label, input {
+            display: block;
+            margin: 10px 0;
+            width: 100%;
+        }
+        input[type="submit"] {
+            background-color: green;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function submitForm(event) {
+            event.preventDefault();
+            let form = document.getElementById('farmerForm');
+            let formData = Object.fromEntries(new FormData(form).entries());
+
+            google.script.run.withSuccessHandler(response => {
+                alert(response);
+                form.reset();
+            }).saveData(formData);
+        }
+    </script>
+</head>
+<body>
+    <h1>DIGITAL INDIA FARMING AND MONITORING SYSTEM</h1>
+    <div class="moving-text">
+        <a href="#">రైతు మరియు వ్యవసాయ భూమి గుర్తింపు సంఖ్య రూపొందించుట  కొరకు ఖచ్చితమైన భూమి సర్వే నెంబర్ మరియు రైతుల యొక్క వివరములు సేకరణ</a>
+    </div>
+    
+    <form id="farmerForm" onsubmit="submitForm(event)">
+        <label>Farmer Name: <input type="text" name="farmerName" required></label>
+        <label>Aadhar Number: <input type="text" name="aadharNumber" required></label>
+        <label>Land Survey Number: <input type="text" name="landSurveyNumber" required></label>
+        <label>Village Name: <input type="text" name="villageName" required></label>
+        <label>District: <input type="text" name="district" required></label>
+        <label>State: <input type="text" name="state" required></label>
+        <label>Bank Account Number: <input type="text" name="bankAccount" required></label>
+        <label>Bank Branch: <input type="text" name="bankBranch" required></label>
+        <label>Email ID: <input type="email" name="email" required></label>
+        <label>Phone Number: <input type="text" name="phone" required></label>
+        <input type="submit" value="Register">
+    </form>
+</body>
+</html>
+ 
+
+
+
+

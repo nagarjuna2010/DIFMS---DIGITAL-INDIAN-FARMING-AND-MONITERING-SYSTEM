@@ -1,0 +1,151 @@
+CODE.GS:
+
+
+
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile("Index")
+    .setTitle("SATELLITE REAL-TIME DATA")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function getWeather(lat, lon) {
+  var apiKey = "d64057806b5af0a4bf4707d5aa3f7985"; // Replace with your OpenWeatherMap API key
+  var url = "https://api.openweathermap.org/data/2.5/weather?lat=" + lat +
+            "&lon=" + lon +
+            "&units=metric&lang=en&appid=" + apiKey;
+
+  var response = UrlFetchApp.fetch(url);
+  var data = JSON.parse(response.getContentText());
+
+  // Mirchi-specific suggestions
+  var suggestions = [];
+
+  var temp = data.main.temp;
+  var humidity = data.main.humidity;
+  var weatherDesc = data.weather[0].description.toLowerCase();
+
+  // Temperature-based
+  if (temp > 35) suggestions.push("🔥 High temperature: Water Mirchi plants frequently and provide shade if possible.");
+  if (temp < 18) suggestions.push("❄️ Low temperature: Protect seedlings, as chillies are sensitive to cold.");
+
+  // Humidity-based
+  if (humidity < 40) suggestions.push("💧 Low humidity: Spray water to maintain soil moisture and reduce stress.");
+  if (humidity > 85) suggestions.push("💦 High humidity: Check for fungal diseases (like leaf spot) and use proper drainage.");
+
+  // Rain / Weather-based
+  if (weatherDesc.includes("rain")) suggestions.push("🌧 Rain expected: Protect fruits from excess water and avoid waterlogging.");
+  else suggestions.push("☀️ Dry weather: Schedule irrigation to keep soil evenly moist.");
+
+  // General Mirchi crop care
+  suggestions.push("🌱 Fertilize with NPK according to soil test results.");
+  suggestions.push("🛡 Check for pests like aphids and mites regularly.");
+
+  // Rain alert
+  var rainAlert = weatherDesc.includes("rain") ? "🌧 Rain expected soon!" : "☀️ No rain expected";
+
+  return {
+    name: data.name,
+    main: data.main,
+    weather: data.weather,
+    rainAlert: rainAlert,
+    suggestions: suggestions
+  };
+}
+
+
+
+
+
+HTML :
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SATELLITE REAL-TIME DATA</title>
+  <style>
+    html, body { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; overflow:hidden; }
+    body {
+      background: url('https://climate.nasa.gov/system/image_uploads/main/smap.jpg') no-repeat center center fixed;
+      background-size: cover;
+      animation: moveBg 30s linear infinite alternate;
+    }
+    @keyframes moveBg {
+      0% { background-position: center top; }
+      50% { background-position: center bottom; }
+      100% { background-position: center top; }
+    }
+    h1 {
+      text-align:center;
+      color:#00ffea;
+      text-shadow: 2px 2px 10px #000;
+      font-size:48px;
+      margin-top:20px;
+      letter-spacing: 2px;
+    }
+    #container {
+      background: rgba(0,0,0,0.6);
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 700px;
+      color: white;
+    }
+    table {
+      width:100%;
+      border-collapse: collapse;
+      margin-top:10px;
+    }
+    th, td {
+      padding:10px;
+      border:1px solid #ccc;
+      text-align:left;
+    }
+    th {
+      background: rgba(0, 255, 234, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <h1>SATELLITE REAL-TIME DATA</h1>
+  <div id="container">
+    <button onclick="getLocation()">📍 Show Data</button>
+    <div id="output">
+      <p>Click the button to view weather and crop suggestions.</p>
+    </div>
+  </div>
+
+  <script>
+    function getLocation() {
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(fetchData, function(){
+          alert("Cannot access GPS");
+        });
+      } else {
+        alert("GPS not supported");
+      }
+    }
+
+    function fetchData(position){
+      google.script.run.withSuccessHandler(function(data){
+        var tableHTML = `
+          <table>
+            <tr><th>Location</th><td>${data.name}</td></tr>
+            <tr><th>Temperature</th><td>${data.main.temp} °C</td></tr>
+            <tr><th>Humidity</th><td>${data.main.humidity}%</td></tr>
+            <tr><th>Weather</th><td>${data.weather[0].description}</td></tr>
+            <tr><th>Rain Alert</th><td>${data.rainAlert}</td></tr>
+            <tr><th>Suggestions for Farmer</th><td>${data.suggestions.join("<br>")}</td></tr>
+          </table>
+        `;
+        document.getElementById("output").innerHTML = tableHTML;
+      }).getWeather(position.coords.latitude, position.coords.longitude);
+    }
+  </script>
+</body>
+</html>

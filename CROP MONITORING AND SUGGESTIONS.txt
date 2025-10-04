@@ -1,0 +1,257 @@
+CODE.GS : 
+
+
+
+
+// Google Apps Script (code.gs)
+
+// Spreadsheet ID and Sheet Name
+const SPREADSHEET_ID = '1s28ka9-ve2x5C3ew02HeEfN71C2i17DzrfF9aBPQnoc';
+const SHEET_NAME = 'crd';
+
+// Function to handle GET request and serve the HTML page
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('వృక్ష వ్యాధి గుర్తింపు');
+}
+
+// Function to analyze disease (simulated for now, replace with actual analysis)
+function analyzeDisease(imageData, diseaseSuggestion) {
+  try {
+    // Check if imageData is base64 encoded
+    if (!imageData || !imageData.startsWith('data:image')) {
+      throw new Error('Invalid image data format');
+    }
+
+    // Decode the base64 string and convert it to a Blob object
+    var imageBlob = Utilities.newBlob(Utilities.base64Decode(imageData.split(',')[1]), 'image/png');
+    
+    // Provide a name for the image file (e.g., timestamped name)
+    var imageName = 'plant_disease_image_' + new Date().getTime() + '.png';
+    
+    // Create file from the image blob and save to Google Drive
+    var imageFile = DriveApp.createFile(imageBlob.setName(imageName));
+    
+    // Save details to the spreadsheet
+    saveToSpreadsheet(imageFile.getUrl(), diseaseSuggestion);
+    
+    // Return the suggestion and image URL
+    return {
+      imageUrl: imageFile.getUrl(),
+      suggestion: diseaseSuggestion
+    };
+  } catch (error) {
+    Logger.log('Error saving image: ' + error.message);
+    return { error: 'There was an error saving the image and data: ' + error.message };
+  }
+}
+
+// Function to save data to the Google Spreadsheet
+function saveToSpreadsheet(imageUrl, suggestion) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_NAME);
+  
+  // Get the current date
+  const date = new Date();
+  
+  // Append the data to the sheet
+  sheet.appendRow([date, imageUrl, suggestion]);
+}
+
+
+
+
+
+HTML : 
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>వృక్ష వ్యాధి గుర్తింపు</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles for fixed header */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #007BFF; /* Blue Background */
+            color: yellow; /* Yellow Font Color */
+            padding: 10px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        /* Add some margin to the body to avoid content being hidden behind the fixed header */
+        body {
+            margin-top: 60px; /* Adjust the margin if needed */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Fixed Header -->
+    <div class="fixed-header">
+        DIGITAL INDIA FARMING AND MONITORING SYSTEM
+    </div>
+
+    <div class="container mx-auto py-10">
+        <h1 class="text-4xl font-bold text-center text-green-600 mb-10">వృక్ష వ్యాధి గుర్తింపు</h1>
+
+        <div class="bg-white shadow-lg rounded-lg p-6 max-w-3xl mx-auto">
+            <form id="plant-disease-form" class="space-y-6">
+                <div>
+                    <label for="plant-image" class="block text-lg font-medium text-gray-700">చిత్రాన్ని అప్లోడ్ చేయండి (ఆకులు, పువ్వులు, వేర్లు, పండ్లు లేదా పంట):</label>
+                    <input 
+                        type="file" 
+                        id="plant-image" 
+                        accept="image/*" 
+                        class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500">
+                </div>
+
+                <button 
+                    type="button" 
+                    id="analyze-button"
+                    class="w-full bg-green-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-700">
+                    వ్యాధిని విశ్లేషించండి
+                </button>
+            </form>
+
+            <div id="result" class="mt-6 hidden">
+                <h2 class="text-2xl font-semibold text-gray-800">విశ్లేషణ ఫలితం:</h2>
+                <p id="result-text" class="mt-2 text-lg text-gray-700"></p>
+                <p id="suggestion-text" class="mt-2 text-lg text-green-700 font-medium"></p>
+            </div>
+
+            <!-- Disease Types Table -->
+            <div class="mt-10">
+                <h2 class="text-2xl font-semibold text-gray-800">వృక్ష వ్యాధుల రకాలు మరియు పరిష్కారాలు:</h2>
+                <table class="min-w-full bg-white border border-gray-200 mt-4 rounded-lg shadow-md">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-700">
+                            <th class="py-3 px-6 text-left">వ్యాధి రకం</th>
+                            <th class="py-3 px-6 text-left">వ్యాధి</th>
+                            <th class="py-3 px-6 text-left">పరిష్కారం</th>
+                            <th class="py-3 px-6 text-left">సూచన</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-6">వేర్లు (Root)</td>
+                            <td class="py-3 px-6">రూట్ రాట్</td>
+                            <td class="py-3 px-6">మట్టి డ్రైనేజ్ మెరుగుపరచండి, కాంటాక్ట్ ఫంగిసైడ్ ఉపయోగించండి.</td>
+                            <td class="py-3 px-6">మట్టి పీల్చు పరిమితి మరియు రుతుపవనాలు ఆపడానికి కంట్రోల్ చేయండి.</td>
+                        </tr>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-6">ఆకులు (Leaf)</td>
+                            <td class="py-3 px-6">శిలీంద్ర సంక్రమణ</td>
+                            <td class="py-3 px-6">శిలీంద్రనాశిని ఫంగిసైడ్ ఉపయోగించండి (ఉదాహరణ: కాపర్ బేస్డ్).</td>
+                            <td class="py-3 px-6">ఆకులపై క్రమం తప్పిన నీటిని నివారించండి, బాగా పెరిగిన ఫంగిసైడ్ ఉపయోగించండి.</td>
+                        </tr>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-6">పువ్వులు (Flower)</td>
+                            <td class="py-3 px-6">పువ్వుల ముడతలు</td>
+                            <td class="py-3 px-6">ఆకలి గ్రోథ్ రెగ్యులేటర్లను ఉపయోగించండి.</td>
+                            <td class="py-3 px-6">ఆకలి పెరిగే విధంగా ఆహారం మరియు నీటి పరిమాణం సరిపడిగా ఉండాలి.</td>
+                        </tr>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-6">పండ్లు (Fruit)</td>
+                            <td class="py-3 px-6">పండ్ల దోషం</td>
+                            <td class="py-3 px-6">బాగు చేసిన ఫంగిసైడ్ ఉపయోగించండి, నీటి ప్రవాహం తగ్గించండి.</td>
+                            <td class="py-3 px-6">ఆకులను నీటితో తుడిచే ముందు, అన్ని పండ్లను పరిశీలించండి.</td>
+                        </tr>
+                        <tr class="border-b border-gray-200">
+                            <td class="py-3 px-6">పంట (Crop)</td>
+                            <td class="py-3 px-6">పంట పచ్చడము</td>
+                            <td class="py-3 px-6">నిర్దిష్ట క్రాప్ ప్రొటెక్టెంట్స్ ఉపయోగించండి.</td>
+                            <td class="py-3 px-6">పంట యొక్క ఎరుపు మరియు ఆకుల క్షయం నివారించేందుకు ఫంగిసైడ్ ఉపయోగించండి.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6">
+                <h2 class="text-2xl font-semibold text-gray-800">ఆన్‌లైన్ టూల్స్:</h2>
+                <ul class="list-disc list-inside mt-2 text-lg text-blue-600">
+                    <li><a href="https://myplantin.com" target="_blank" class="hover:underline">Plant Disease Identifier by PlantIn</a></li>
+                    <li><a href="https://www.plant.id" target="_blank" class="hover:underline">Plant.id</a></li>
+                    <li><a href="https://agrio.app" target="_blank" class="hover:underline">Agrio</a> (Free with premium options)</li>
+                    <li><a href="https://blossomplant.com" target="_blank" class="hover:underline">Blossom</a> (Free with additional features)</li>
+                    <li><a href="https://plantdiseaseidentifier.com" target="_blank" class="hover:underline">Plant Disease Identifier</a></li>
+                    <li><a href="https://cropdoctor.ai" target="_blank" class="hover:underline">Crop Doctor</a> (Completely free)</li>
+                    <li><a href="https://leafsnap.com" target="_blank" class="hover:underline">LeafSnap</a> (Free)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.getElementById('analyze-button').addEventListener('click', () => {
+        const imageInput = document.getElementById('plant-image');
+        const resultDiv = document.getElementById('result');
+        const resultText = document.getElementById('result-text');
+        const suggestionText = document.getElementById('suggestion-text');
+
+        if (imageInput.files.length === 0) {
+            alert('దయచేసి వృక్ష చిత్రాన్ని అప్లోడ్ చేయండి.');
+            return;
+        }
+
+        // Simulate analysis (replace with actual backend request in production)
+        resultText.textContent = 'చిత్రాన్ని ప్రాసెస్ చేస్తున్నారు...';
+        suggestionText.textContent = '';
+        resultDiv.classList.remove('hidden');
+
+        setTimeout(() => {
+            const diseases = [
+                {
+                    part: 'ఆకులు',
+                    disease: 'శిలీంద్ర సంక్రమణ',
+                    suggestion: 'శిలీంద్రనాశిని ఫంగిసైడ్ (ఉదాహరణ: కాపర్ బేస్డ్).'
+                },
+                {
+                    part: 'వేర్లు',
+                    disease: 'రూట్ రాట్',
+                    suggestion: 'మట్టి డ్రైనేజ్ మెరుగుపరచండి, కాంటాక్ట్ ఫంగిసైడ్ ఉపయోగించండి.'
+                },
+                {
+                    part: 'పండ్లు',
+                    disease: 'పండ్ల దోషం',
+                    suggestion: 'బాగు చేసిన ఫంగిసైడ్ ఉపయోగించండి, నీటి ప్రవాహం తగ్గించండి.'
+                }
+            ];
+
+            const randomDisease = diseases[Math.floor(Math.random() * diseases.length)];
+            resultText.textContent = `${randomDisease.part}లో ${randomDisease.disease} కనిపించింది.`;
+            suggestionText.textContent = randomDisease.suggestion;
+
+            // Convert the image to base64
+            const fileReader = new FileReader();
+            fileReader.onloadend = function () {
+                const imageData = fileReader.result; // Base64 encoded string
+                // Send the imageData and suggestion to the server
+                google.script.run.withSuccessHandler((response) => {
+                    if (response.error) {
+                        alert('Error: ' + response.error);
+                    } else {
+                        console.log('Image uploaded and data saved: ', response);
+                    }
+                }).analyzeDisease(imageData, randomDisease.suggestion);
+            };
+
+            fileReader.readAsDataURL(imageInput.files[0]);
+        }, 3000); // Simulating a delay for processing
+    });
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+CODE.GS:
+
+
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('DIFMS - DIGITAL INDIAN FARMING AND MONITORING SYSTEM');
+}
+
+
+
+
+HTML : 
+
+
+
+<!DOCTYPE html>
+<html lang="te">
+<head>
+  <meta charset="UTF-8">
+  <title>DIFMS - DIGITAL INDIAN FARMING AND MONITORING SYSTEM</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: url("https://assets.weforum.org/article/image/OFmrVg02eeGSvuI-_NT2D7gFKPagzGCrF-KYLcreYDU.jpg") no-repeat center center fixed;
+      background-size: cover;
+      text-align: center;
+    }
+    h1 {
+      background: blue;
+      color: yellow;
+      padding: 20px;
+      margin: 0;
+      font-size: 28px;
+    }
+    .container {
+      margin-top: 100px;
+    }
+    .btn {
+      display: block;
+      width: 300px;
+      margin: 20px auto;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background: #4CAF50;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>DIFMS - DIGITAL INDIAN FARMING AND MONITORING SYSTEM</h1>
+  <div class="container">
+    <a href="file:///C:/Users/nagar/OneDrive/Desktop/APPS/Farmerland.html" class="btn" target="_blank">Land details</a>
+    <a href="https://script.google.com/macros/s/AKfycbyaBINk26dCqET4CrvMGss4-zCyYV1g78w-Tyr3B0h8/dev" class="btn" target="_blank">Soil PH range and crop selection</a>
+    <a href="https://script.google.com/macros/s/AKfycbwT_ziEDYWbD5qpBXyNrYe2p0P5E-oFoSDeGU6bdtOt/dev" class="btn" target="_blank">Crop details</a>
+    <a href="https://script.google.com/macros/s/AKfycbzto9aFGmZqxkV68ljZs-XEK0-ar1SM4jsooaPskl0/dev" class="btn" target="_blank">
+Submitting crop photos</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,188 @@
+CODE.GS: 
+
+
+
+
+
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle("Crop Data Collection & Chart");
+}
+
+function saveData(tokenNumber, cropName, acres) {
+  var sheet = SpreadsheetApp.openById("1s28ka9-ve2x5C3ew02HeEfN71C2i17DzrfF9aBPQnoc").getSheetByName("crop"); 
+  if (!sheet) {
+    return "Error: Sheet not found!";
+  }
+  sheet.appendRow([new Date(), tokenNumber, cropName, acres]);
+  return "Data Saved Successfully!";
+}
+
+function getChartData() {
+  var sheet = SpreadsheetApp.openById("1s28ka9-ve2x5C3ew02HeEfN71C2i17DzrfF9aBPQnoc").getSheetByName("crop"); 
+  if (!sheet) {
+    return [];
+  }
+
+  var data = sheet.getDataRange().getValues();
+  var cropData = {};
+  var maxAcres = 100; // Reference point for 100% usage
+
+  for (var i = 1; i < data.length; i++) { // Skip header row
+    var crop = data[i][2]; // Column C - Crop Name
+    var acres = parseFloat(data[i][3]); // Column D - Acres of Land
+
+    if (crop && !isNaN(acres)) {
+      cropData[crop] = (cropData[crop] || 0) + acres;
+    }
+  }
+
+  var chartData = [["Crop Name", "Acres of Land", { role: "annotation" }]];
+
+  Object.keys(cropData).forEach(function (crop) {
+    var usedPercentage = (cropData[crop] / maxAcres) * 100;
+    var requiredPercentage = 100 - usedPercentage;
+    var annotation = usedPercentage.toFixed(1) + `% (Required ${requiredPercentage.toFixed(1)}%)`;
+    chartData.push([crop, cropData[crop], annotation]);
+  });
+
+  return chartData;
+}
+
+
+
+
+
+
+
+HTML : 
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Crop Data & Bar Chart</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    google.charts.load('current', { packages: ['corechart'] });
+
+    function submitData() {
+      var tokenNumber = document.getElementById("tokenNumber").value;
+      var cropName = document.getElementById("cropName").value;
+      var acres = document.getElementById("acres").value;
+
+      if (!tokenNumber || !cropName || !acres) {
+        alert("Please fill in all fields!");
+        return;
+      }
+
+      google.script.run.withSuccessHandler(function(response) {
+        alert(response);
+        document.getElementById("dataForm").reset();
+        drawChart(); // Refresh chart after submission
+      }).saveData(tokenNumber, cropName, acres);
+    }
+
+    function drawChart() {
+      google.script.run.withSuccessHandler(function(chartData) {
+        var data = google.visualization.arrayToDataTable(chartData);
+
+        var options = {
+          title: 'Crop Acres Data (Usage & Required %)',
+          chartArea: { width: '60%' },
+          hAxis: {
+            title: 'Acres of Land',
+            minValue: 0
+          },
+          vAxis: {
+            title: 'Crop Name'
+          },
+          bars: 'horizontal',
+          annotations: {
+            alwaysOutside: true,
+            textStyle: { 
+              fontName: 'Comic Sans MS', 
+              fontSize: 14, 
+              bold: true, 
+              color: 'red' 
+            }
+          },
+          colors: ['#4CAF50']
+        };
+
+        var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }).getChartData();
+    }
+
+    google.charts.setOnLoadCallback(drawChart);
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      text-align: center;
+      background: url('https://tracextech.com/wp-content/uploads/2024/05/Fair-Pricing-for-Farmers--scaled.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    form {
+      display: inline-block;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.8); /* Semi-transparent */
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px #ccc;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: darkgreen;
+    }
+    #chart_div {
+      width: 100%;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.8); /* Semi-transparent */
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Crop Data Collection & Bar Chart</h2>
+  
+  <form id="dataForm">
+    <label>Token Number:</label>
+    <input type="text" id="tokenNumber" required><br><br>
+
+    <label>Crop Name:</label>
+    <input type="text" id="cropName" required><br><br>
+
+    <label>Acres of Land:</label>
+    <input type="number" id="acres" required><br><br>
+
+    <button type="button" onclick="submitData()">Submit</button>
+  </form>
+
+  <h3>Bar Chart (Crop Acres Data)</h3>
+  <div id="chart_div"></div>
+</body>
+</html>

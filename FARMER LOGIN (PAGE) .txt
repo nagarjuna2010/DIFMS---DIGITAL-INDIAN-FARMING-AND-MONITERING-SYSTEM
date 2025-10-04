@@ -1,0 +1,219 @@
+CODE.GS:
+
+
+var SPREADSHEET_ID = "1zZo9mNiPeftPyIcAl9L8RjXr28Li-2KiPraM44q7peg"; 
+
+function doGet() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheetSat = ss.getSheetByName("1"); // satellite data
+  var sheetGround = ss.getSheetByName("2"); // ground data
+
+  if (!sheetSat || !sheetGround) {
+    return HtmlService.createHtmlOutput("<p>Error: One of the sheets named '1' or '2' was not found.</p>");
+  }
+
+  // Read only A → I (9 columns)
+  var valsSat = sheetSat.getRange(2, 1, 1, 9).getValues()[0];
+  var valsGrd = sheetGround.getRange(2, 1, 1, 9).getValues()[0];
+
+  // Headers (A → I)
+  var headers = sheetSat.getRange(1, 1, 1, 9).getValues()[0];
+
+  var payload = {
+    headers: headers,
+    satellite: valsSat,
+    ground: valsGrd
+  };
+
+  var t = HtmlService.createTemplateFromFile("Index");
+  t.payload = JSON.stringify(payload);
+  return t.evaluate()
+          .setTitle("Digital India Farming and Monitoring System")
+          .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
+}
+
+
+
+
+HTML : 
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Digital India Farming and Monitoring System</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    /* Full-page moving background */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      overflow-x: hidden;
+      height: 100vh;
+      background: url('https://agritechdigest.com/wp-content/uploads/2024/09/IMG_8428.png') repeat-x;
+      background-size: cover;
+      animation: moveBg 60s linear infinite;
+    }
+    @keyframes moveBg {
+      0% { background-position: 0 0; }
+      100% { background-position: -1000px 0; }
+    }
+
+    /* Title */
+    .title {
+      font-size: 36px; /* increased font */
+      font-weight: bold;
+      text-align: center;
+      padding: 20px 0;
+      color: white; /* changed to white */
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+
+    /* Caption */
+    .caption {
+      font-size: 28px; /* increased font */
+      font-weight: bold;
+      margin: 20px auto;
+      display: inline-block;
+      padding: 10px 20px;
+      color: white;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+    }
+
+    .container {
+      display: flex;
+      margin-top: 20px;
+      padding: 0 20px;
+    }
+
+    /* Menu & Buttons */
+    .menu {
+      width: 280px;
+      padding: 15px;
+    }
+    .menu a {
+      display: block;
+      width: 100%;
+      font-size: 22px;  /* increased font */
+      font-weight: bold;
+      padding: 20px;    /* bigger buttons */
+      margin: 15px 0;
+      text-align: center;
+      text-decoration: none;
+      border: 2px solid white; /* changed border to white */
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+      color: white; /* text color white */
+    }
+    .menu a:hover {
+      transform: scale(1.05);
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* Table & card */
+    .table-card {
+      flex: 1;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 800px;
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid white; /* changed border to white */
+      padding: 8px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.4);
+      color: white; /* text color white */
+    }
+
+    #chart_div {
+      margin-top: 20px;
+      height: 300px;
+    }
+
+    .suggestion { margin-top: 20px; padding: 10px; border-radius: 6px; }
+    .ok { color: lightgreen; }
+    .alert { color: red; }
+  </style>
+</head>
+<body>
+  <div class="title">DIGITAL INDIA FARMING AND MONITORING SYSTEM</div>
+
+  <div class="caption">FARMER PAGE</div>
+
+  <div class="container">
+    <!-- Left menu -->
+    <div class="menu">
+      <a href="https://script.google.com/macros/s/AKfycbwIRH9K1NJ6rJ8KQThs3EiyBbcOkr4NWxuof3hX42yTSw857RxvdN3grQzKuQUqDJCF/exec" target="_blank">Farmer Details</a>
+      <a href="https://script.google.com/macros/s/AKfycbyCaimQgZCwN7NiG5c_fWw1HkDuYhLd2UJmXqHGKd6Y_Ueh1JU2wDV_yL_suhrbmKch/exec" target="_blank">Ground Level Data</a>
+      <a href="https://script.google.com/macros/s/AKfycbzsOmZ8jJy9z8xbr6376rlxc-_F53eYREt5nUS6vnBVyuEWRU0YQyoaHM93y6SOjqqo/exec" target="_blank">Realtime Satellite Data</a>
+      <a href="https://script.google.com/macros/s/AKfycbz45ocLQvJq0DLK1GulTFuvutdG4GN4JnMKh1Ji3P1FAU6athqrwrRCDhZ65TAbxanH/exec" target="_blank">Digital Market</a>
+       <a href="https://script.google.com/macros/s/AKfycbxg40MLZuyjgrCyJuvNPfXkhoINsCKicymO6EWTRNciiKSDcbDIyTmM9KWEKSWVerDe/exec" target="_blank">NASA Real Time Data and Ground Data Observations</a>
+    </div>
+
+    <!-- Right table & chart -->
+    <div class="table-card">
+      <h3 style="color:white;">Field Comparison & Suggestions</h3>
+      <table id="data-table"></table>
+      <div id="chart_div"></div>
+      <div id="suggestion-box"></div>
+    </div>
+  </div>
+
+  <script>
+    const payload = JSON.parse(<?= payload ?>);
+    const headers = payload.headers;
+    const sat = payload.satellite;
+    const grd = payload.ground;
+
+    // Build table
+    let table = "<tr>";
+    headers.forEach(h => table += `<th>${h}</th>`);
+    table += "</tr>";
+    table += "<tr><td>Satellite data</td>" + sat.map(v => `<td>${v}</td>`).join("") + "</tr>";
+    table += "<tr><td>Ground level data</td>" + grd.map(v => `<td>${v}</td>`).join("") + "</tr>";
+    document.getElementById("data-table").innerHTML = table;
+
+    // Draw chart
+    google.charts.load('current', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(drawChart);
+    function drawChart() {
+      const data = new google.visualization.DataTable();
+      data.addColumn('string', 'Parameter');
+      data.addColumn('number', 'Satellite');
+      data.addColumn('number', 'Ground');
+      data.addRows([
+        [headers[1], parseFloat(sat[1]) || 0, parseFloat(grd[1]) || 0],
+        [headers[2], parseFloat(sat[2]) || 0, parseFloat(grd[2]) || 0],
+        [headers[3], parseFloat(sat[3]) || 0, parseFloat(grd[3]) || 0]
+      ]);
+      const options = {
+        curveType: 'function',
+        legend: { position: 'right' },
+        backgroundColor: { fill: 'transparent' },
+        chartArea: { left: 50, top: 30, width: '80%', height: '70%' }
+      };
+      const chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+    }
+
+    // Suggestions
+    let sugg = "";
+    if (parseFloat(grd[3]) < 30) sugg += "<div class='alert'>⚠ Soil moisture is low. Irrigation needed.</div>";
+    else sugg += "<div class='ok'>✅ Soil moisture looks good.</div>";
+    if (parseFloat(grd[2]) < 5) sugg += "<div class='alert'>⚠ Low temperature — protect sensitive crops.</div>";
+    if (grd[6] && grd[6].toString().toLowerCase() !== "good") sugg += "<div class='alert'>⚠ Crop health issue — inspect fields.</div>";
+    document.getElementById("suggestion-box").innerHTML = sugg;
+  </script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+CODE..GS : 
+ 
+
+
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle('FLN Data Collection');
+}
+
+function saveData(formData) {
+  try {
+    var sheetId = "1s28ka9-ve2x5C3ew02HeEfN71C2i17DzrfF9aBPQnoc"; // Google Sheet ID
+    var sheetName = "Photos";
+    var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
+    if (!sheet) return "Error: Google Sheet not found!";
+
+    var folderId = "YOUR_FOLDER_ID"; // Replace with your Google Drive Folder ID
+    var folder;
+    
+    try {
+      folder = DriveApp.getFolderById(folderId);
+    } catch (e) {
+      folder = DriveApp.createFolder("FLN_Land_Photos"); // Creates a folder if ID is incorrect
+      folderId = folder.getId();
+    }
+
+    var imageUrls = [];
+    for (var i = 0; i < formData.images.length; i++) {
+      var imageData = Utilities.base64Decode(formData.images[i].data);
+      var blob = Utilities.newBlob(imageData, formData.images[i].type, formData.images[i].name);
+      var file = folder.createFile(blob);
+
+      // Make the image publicly accessible
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+      // Convert file URL to a direct link (Google Drive image format)
+      var fileId = file.getId();
+      var directImageUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+      imageUrls.push(directImageUrl);
+    }
+
+    // Get current date & time in DD-MM-YYYY HH:MM format
+    var today = new Date();
+    var formattedDateTime = Utilities.formatDate(today, Session.getScriptTimeZone(), "dd-MM-yyyy HH:mm");
+
+    // Create Google Maps link from latitude & longitude
+    var gpsLink = `=HYPERLINK("https://www.google.com/maps?q=${formData.gpsLocation}", "View Location")`;
+
+    // Insert FLN number, date-time, GPS location & link in Columns A to D
+    var row = sheet.getLastRow() + 1;
+    sheet.getRange(row, 1).setValue(formData.flnNumber);
+    sheet.getRange(row, 2).setValue(formattedDateTime); // Auto-filled date & time
+    sheet.getRange(row, 3).setValue(formData.gpsLocation); // GPS coordinates (lat, lon)
+    sheet.getRange(row, 4).setFormula(gpsLink); // Google Maps link
+
+    // Insert images using IMAGE() formula in columns E to L (max 8 images)
+    for (var j = 0; j < imageUrls.length; j++) {
+      var cell = sheet.getRange(row, j + 5);
+      cell.setFormula(`=IMAGE("${imageUrls[j]}", 1)`);
+    }
+
+    // Resize row height to fit 2 cm (76 pixels)
+    sheet.setRowHeight(row, 76);
+
+    // Resize columns to fit 2 cm (76 pixels)
+    for (var k = 5; k <= imageUrls.length + 4; k++) {
+      sheet.setColumnWidth(k, 76);
+    }
+
+    return "Submission Successful! Data Saved with Images, GPS Link, and Date-Time.";
+  } catch (error) {
+    return "Error: " + error.toString();
+  }
+}
+
+
+
+
+
+
+HTML : 
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLN Data Collection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-image: url('https://img.freepik.com/premium-photo/new-plants-sprouting-field-dirt-showcase-beauty-potential-new-plant-growth-agriculture-farming-emphasizing-sustainable_38013-11280.jpg');
+            background-size: cover;
+            background-position: center;
+            color: yellow;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: blue;
+        }
+        .marquee {
+            font-size: 18px;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">DIGITAL INDIA FARMING AND MONITORING SYSTEM</div>
+    
+    <marquee class="marquee" direction="left" scrollamount="3">***" రైతుల పంట వివరములు తెలుసుకొనుటకు మరియు ప్రభుత్వ పధకములు అర్హత గల రైతులకు చేరుటకు "***</marquee>
+    
+    <h2>FLN Data Collection Form</h2>
+    
+    <label>FLN Number:</label>
+    <input type="text" id="flnNumber" required><br><br>
+
+    <label>Date & Time (Auto-filled):</label>
+    <input type="text" id="dateTimeInput" readonly><br><br>
+
+    <label>GPS Location (Latitude, Longitude):</label>
+    <input type="text" id="gpsLocation" readonly>
+    <button onclick="getLocation()">Get GPS</button><br><br>
+
+    <label>Upload up to 8 Land Photos:</label>
+    <input type="file" id="photoInput" accept="image/*" multiple><br><br>
+
+    <button onclick="submitData()">Submit</button>
+
+    <p id="response" style="color: green; font-weight: bold;"></p>
+
+    <script>
+        function getCurrentDateTime() {
+            let today = new Date();
+            let day = today.getDate().toString().padStart(2, '0');
+            let month = (today.getMonth() + 1).toString().padStart(2, '0');
+            let year = today.getFullYear();
+            let hours = today.getHours().toString().padStart(2, '0');
+            let minutes = today.getMinutes().toString().padStart(2, '0');
+            return `${day}-${month}-${year} ${hours}:${minutes}`;
+        }
+        document.getElementById("dateTimeInput").value = getCurrentDateTime();
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    let lat = position.coords.latitude.toFixed(6);
+                    let lon = position.coords.longitude.toFixed(6);
+                    document.getElementById("gpsLocation").value = `${lat}, ${lon}`;
+                }, function(error) {
+                    alert("Error fetching location: " + error.message);
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function submitData() {
+            var flnNumber = document.getElementById("flnNumber").value;
+            var dateTimeInput = document.getElementById("dateTimeInput").value;
+            var gpsLocation = document.getElementById("gpsLocation").value;
+            var photoInput = document.getElementById("photoInput").files;
+
+            if (!flnNumber || !gpsLocation || photoInput.length === 0) {
+                alert("Please enter the FLN number, get GPS location, and select at least one image!");
+                return;
+            }
+
+            if (photoInput.length > 8) {
+                alert("You can only upload up to 8 photos.");
+                return;
+            }
+
+            var imagesData = [];
+            var loadedCount = 0;
+
+            for (let i = 0; i < photoInput.length; i++) {
+                let reader = new FileReader();
+                reader.onloadend = function () {
+                    imagesData.push({
+                        name: photoInput[i].name,
+                        type: photoInput[i].type,
+                        data: reader.result.split(",")[1]
+                    });
+
+                    loadedCount++;
+                    if (loadedCount === photoInput.length) {
+                        google.script.run.withSuccessHandler(function(response) {
+                            document.getElementById("response").innerText = response;
+                            document.getElementById("flnNumber").value = "";
+                            document.getElementById("photoInput").value = "";
+                            document.getElementById("gpsLocation").value = "";
+                            document.getElementById("dateTimeInput").value = getCurrentDateTime();
+                        }).saveData({ flnNumber: flnNumber, gpsLocation: gpsLocation, images: imagesData });
+                    }
+                };
+                reader.readAsDataURL(photoInput[i]);
+            }
+        }
+    </script>
+
+</body>
+</html>

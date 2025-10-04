@@ -1,0 +1,195 @@
+
+CODE.GS
+
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('Digital India Farming and Monitoring System');
+}
+
+function getUserDetails(token, sheetName) {
+  var sheetId = "1s28ka9-ve2x5C3ew02HeEfN71C2i17DzrfF9aBPQnoc"; // Google Sheet ID
+  var sheet = SpreadsheetApp.openById(sheetId).getSheetByName(sheetName);
+  
+  if (!sheet) {
+    return "Invalid Sheet!";
+  }
+
+  var data = sheet.getDataRange().getValues();
+  
+  if (data.length < 2) {
+    return "No data found!";
+  }
+
+  var headers = data[0]; // Get column headers from the first row
+
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][10].toString().trim() == token.trim()) { // Check column K for token
+      var userDetails = {};
+      for (var j = 0; j < headers.length; j++) {
+        userDetails[headers[j]] = data[i][j]; // Map header names to row values
+      }
+      return JSON.stringify(userDetails); // Return JSON string
+    }
+  }
+  return "Invalid Token!";
+}
+
+function verifyBIN(binNumber) {
+  return getUserDetails(binNumber, "CS"); // Fetch data from CS sheet
+}
+
+function verifyFLINumber(fliTokenNumber) {
+  return getUserDetails(fliTokenNumber, "Registration"); // Fetch data from Registration sheet
+}
+
+
+
+
+
+
+HTML:
+
+<!DOCTYPE html>  
+<html>
+<head>
+    <title>DIGITAL INDIA FARMING AND MONITORING SYSTEM</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            font-family: "Arial Rounded MT Bold", sans-serif;
+        }
+        .header-container {
+            background-color: blue;
+            padding: 40px;
+            text-align: center;
+        }
+        h1 {
+            color: yellow;
+            font-size: 48px;
+            margin: 0;
+            white-space: nowrap;
+        }
+        .marquee-container {
+            text-align: center;
+            background-color: transparent;
+            padding: 10px;
+        }
+        .marquee-container a {
+            color: red;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .image-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+        }
+        .form-box {
+            width: 45%;
+            text-align: center;
+            background: transparent;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        input, button {
+            margin: 5px;
+            padding: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            width: 80%;
+        }
+        button {
+            background-color: blue;
+            color: yellow;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        #farmerDetails {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: lightgray;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>DIGITAL INDIA FARMING AND MONITORING SYSTEM</h1>
+    </div>
+
+    <div class="marquee-container">
+        <marquee behavior="scroll" direction="left" scrollamount="5">
+            *** <a href="#">*** భారతదేశ సన్నకారు రైతుల అభివృద్ధి మరియు  ప్రోత్సహం కొరకు -- భారతదేశ ఆర్ధిక వ్యవస్థ అభిరుద్ది కొరకు -- దళారి వ్యవస్థ నిర్ములనకు -- పంటకు తగిన  గిట్టుబాటు ధర లభించేందుకు -- ఆధునిక సాంకేతికను రైతులకు అందించేందుకు -- అర్హత కలిగిన రైతులకు నేరుగ ప్రభుత్వ పధకములు లభించేందుకు    ***</a> ***
+        </marquee>
+    </div>
+
+    <div class="image-container">
+        <div class="form-container">
+            <div class="form-box">
+                <h2>Farmer Registration</h2>
+                <button onclick="window.open('https://script.google.com/macros/s/AKfycbxqZcPt_InLIKXwq7l7AXElmBdFLbqrcr1l4V4ub5Hq/dev', '_blank')">Register</button>
+                <h2>Farmer Login</h2>
+                <input type="text" id="fliTokenNumber" placeholder="Enter FLI TOKEN NUMBER">
+                <button onclick="window.open('https://script.google.com/macros/s/AKfycbzPIhPqazXbS2I06xY0kANJxJlBPqT9cw4V-7hX0mvJ1r8lGauN2dRKfLBW9xsNJz9n_Q/exec', '_blank')">Login</button>
+            </div>
+            
+            <div class="form-box">
+                <h2>Buyer Registration</h2>
+                <button onclick="window.open('https://script.google.com/macros/s/AKfycbxJlR8UkwwFtKkja8dtM3c2G397qrMRBBUuLjISKv8/dev', '_blank')">Register</button>
+                <h2>Buyer Login</h2>
+                <input type="text" id="binNumber" placeholder="Enter BIN NUMBER">
+                <button onclick="window.open('https://script.google.com/macros/s/AKfycbz45ocLQvJq0DLK1GulTFuvutdG4GN4JnMKh1Ji3P1FAU6athqrwrRCDhZ65TAbxanH/exec', '_blank')">Login</button>
+            </div>
+        </div>
+        <img src="https://www.indiaspend.com/wp-content/uploads/7272267428_6c02c3aa76_z.jpg" alt="Indian Agriculture">
+    </div>
+
+    <!-- Farmer Details Table (Initially Hidden) -->
+    <div id="farmerDetails">
+        <h2>Farmer Details</h2>
+        <table id="detailsTable"></table>
+    </div>
+</body>
+</html>
+

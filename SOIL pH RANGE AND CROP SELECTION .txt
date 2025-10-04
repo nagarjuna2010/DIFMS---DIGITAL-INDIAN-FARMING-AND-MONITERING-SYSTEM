@@ -1,0 +1,158 @@
+CODE.GS:
+
+
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('Soil pH Information');
+}
+
+function getSoilPHData() {
+  return [
+    ["మొక్కల రకం", "అనుకూలమైన pH పరిధి", "పరీక్షించే పద్ధతులు", "pH సర్దుబాటు చేయడానికి చిట్కాలు"],
+    ["కూరగాయలు", "6.0 – 7.0", "హోమ్ టెస్ట్ కిట్, డిజిటల్ మీటర్, ప్రయోగశాల పరీక్ష", "pH పెంచడానికి లైమ్, తగ్గించడానికి సల్ఫర్ చేర్చండి"],
+    ["పండ్లు", "4.5 – 6.5", "హోమ్ టెస్ట్ కిట్, వెనిగర్/బేకింగ్ సోడా టెస్ట్", "pH తగ్గించడానికి సల్ఫర్, పెంచడానికి లైమ్ ఉపయోగించండి"],
+    ["గడ్డి (లాన్ గడ్డి)", "6.0 – 7.0", "డిజిటల్ pH మీటర్, ప్రయోగశాల పరీక్ష", "అవసరానికి అనుగుణంగా లైమ్ లేదా సల్ఫర్ చేర్చండి"],
+    ["పుష్పాలు", "6.0 – 7.5", "హోమ్ టెస్ట్ కిట్, డిజిటల్ మీటర్", "సమతుల్యత కోసం జీవశాఖ (కాంపోస్ట్) ఉపయోగించండి"],
+    ["ఆమ్ల ప్రియ మొక్కలు", "4.5 – 6.0", "వెనిగర్/బేకింగ్ సోడా టెస్ట్, ప్రయోగశాల పరీక్ష", "pH తగ్గించడానికి పీట్ మాస్, సల్ఫర్ ఉపయోగించండి"]
+  ];
+}
+
+function getSuggestion(pHValue) {
+  if (pHValue < 4.5) {
+    return "మీ మట్టి చాలా ఆమ్ల పదార్థం కలిగి ఉంది. pH పెంచడానికి లైమ్ లేదా డోలోమైట్ చేర్చండి. ఉదాహరణకు, బ్లూబెర్రీలు, రొదోడెండ్రాన్, హైడ్రేంజియాలు పెంచగలరు.";
+  } else if (pHValue >= 4.5 && pHValue < 6.0) {
+    return "ఈ స్థాయిలో, మీరు ఆమ్ల ప్రియ మొక్కలను పెంచవచ్చు. ఉదాహరణకు, స్ట్రాబెర్రీలు, పైనాపిల్, టమోటా. pH పెంచడానికి లైమ్ ఉపయోగించవచ్చు.";
+  } else if (pHValue >= 6.0 && pHValue < 7.5) {
+    return "మట్టి సరైన స్థాయిలో ఉంది. ఎటువంటి మార్పులు అవసరం లేదు. ఉదాహరణకు, బఠాని, క్యారెట్, పాలకూర, క్యాబేజి మొక్కలను పెంచవచ్చు.";
+  } else {
+    return "మీ మట్టి ఎక్కువ క్షారతత్వం కలిగి ఉంది. pH తగ్గించడానికి సల్ఫర్ లేదా పీట్ మాస్ ఉపయోగించండి. ఉదాహరణకు, వెల్లుల్లి, బంగాళదుంపలు, గడ్డి (లాన్ గడ్డి)కి ఇది అనుకూలంగా ఉంటుంది.";
+  }
+}
+
+function savePHData(token, pHValue, suggestion) {
+  var sheet = SpreadsheetApp.openById("1s28ka9-ve2x5C3ew02HeEfN71C2i17DzrfF9aBPQnoc").getSheetByName("ph");
+  sheet.appendRow([new Date(), token, pHValue, suggestion]);
+  return "డేటా విజయవంతంగా సేవ్ చేయబడింది!";
+}
+
+
+
+
+
+
+HTML : 
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil pH Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        #suggestion {
+            font-weight: bold;
+            margin-top: 20px;
+            color: #ff5722;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>మట్టి pH సమాచారం</h2>
+
+    <table id="soilTable">
+        <!-- Data will be inserted here dynamically -->
+    </table>
+
+    <h3>మీ మట్టి pH విలువను నమోదు చేయండి</h3>
+    <form onsubmit="submitPH(event)">
+        <label for="token">టోకెన్ నంబర్:</label>
+        <input type="text" id="token" required>
+        <br>
+        <label for="phValue">pH విలువ:</label>
+        <input type="number" id="phValue" step="0.1" required>
+        <br>
+        <button type="submit">సమీటు చేయండి</button>
+    </form>
+
+    <p id="suggestion"></p>
+
+    <script>
+        function loadSoilPHData() {
+            google.script.run.withSuccessHandler(displayData).getSoilPHData();
+        }
+
+        function displayData(data) {
+            let table = document.getElementById("soilTable");
+            let content = "";
+            
+            data.forEach((row, index) => {
+                content += "<tr>";
+                row.forEach(cell => {
+                    content += index === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`;
+                });
+                content += "</tr>";
+            });
+
+            table.innerHTML = content;
+        }
+
+        function submitPH(event) {
+            event.preventDefault(); // Prevent form submission
+
+            let token = document.getElementById("token").value;
+            let phValue = parseFloat(document.getElementById("phValue").value);
+
+            if (!token || isNaN(phValue)) {
+                alert("దయచేసి సరైన టోకెన్ నంబర్ మరియు pH విలువను నమోదు చేయండి.");
+                return;
+            }
+
+            google.script.run.withSuccessHandler(function(suggestion) {
+                document.getElementById("suggestion").innerText = "సలహా: " + suggestion;
+
+                // Save details to Google Sheets
+                google.script.run.withSuccessHandler(function(message) {
+                    alert(message);
+                }).savePHData(token, phValue, suggestion);
+
+            }).getSuggestion(phValue);
+        }
+
+        window.onload = loadSoilPHData;
+    </script>
+
+</body>
+</html>
